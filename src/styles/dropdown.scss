@@ -1,0 +1,39 @@
+html, body { height: 100%; width: 100%; }
+
+#dropdown {
+  position: relative;
+}
+.dropdownSelectedItem {
+  display: block;
+  width: 200px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  background: #fff;
+}
+.dropdownBox {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  width: 200px;
+  height: 100px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-top: 0;
+  &.open {
+    display: block;
+  }
+  &.close {
+    display: none;
+  }
+}
+.dropdownItem {
+  cursor: pointer;
+  &.hover {
+    background: blue;
+  }
+}
