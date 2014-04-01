@@ -5,7 +5,8 @@ var defaultDropdownState = {
   searchTerm: '',
   open: false,
   selectedId: null,
-  items: []
+  items: [],
+  groups: []
 };
 
 var Dropdown = React.createClass({
@@ -17,7 +18,7 @@ var Dropdown = React.createClass({
     });
   },
   getInitialState: function() {
-    return _.extend(defaultDropdownState,{items: this.props.items});
+    return _.extend(defaultDropdownState,{groups: this.props.groups});
   },
   handleSelectChange: function(newId){
     this.updateState({
@@ -28,13 +29,10 @@ var Dropdown = React.createClass({
     });
   },
   updateState: function(update){
-    this.setState(
-      _.extend(this.state,update)
-    );
+    this.setState(_.extend(this.state,update));
   },
   toggleDropbox: function(){
-    // TODO: Clean this up
-    var open = {};
+    var open;
     if(this.state.open){
       open = { open: false, searchTerm: '', hoverId: null };
     }else{
@@ -42,34 +40,40 @@ var Dropdown = React.createClass({
     }
     this.updateState(open);
   },
-  render: function(){
-    var selectedItemId = this.state.selectedId;
-    // TODO: Change .items.items. to groups.items but it needs to be all of them?
-    var allItems = _.flatten(_.map(this.state.items,function(items){
-      return items.items;
-    }));
-    var selectedItem = _.find(allItems,function(item){
-      return selectedItemId == item.id;
-    }) || { id: -1, name: 'Select Something Dude' }; // TODO: Add this default selection to options? Merge it into items as a real item?
-    var searchedGroups = filterGroupsFromSearchTerm(this.state.items,this.state.searchTerm);
-    return (
-      <div className="dropdown" onClick={this.stopClicks}>
-        <DropdownSelectedItem
-          id={selectedItem.id}
-          name={selectedItem.name}
-          toggleDropbox={this.toggleDropbox} />
-        <DropdownBox 
+  dropdownBoxEl: function(){
+    if(this.state.open === true){
+      return <DropdownBox 
           searchTerm={this.state.searchTerm}
-          items={searchedGroups}
+          items={this.searchedGroups}
           onSelectedChange={this.handleSelectChange}
           open={this.state.open}
           toggleDropbox={this.toggleDropbox}
           updateState={this.updateState}
           hoverId={this.state.hoverId} />
+    }
+  },
+  render: function(){
+    var selectedItemId = this.state.selectedId;
+    var allItems = _.flatten(_.map(this.state.groups,function(group){
+      return group.items;
+    })); // merge in state.items
+    var selectedItem = _.find(allItems,function(item){
+      return selectedItemId == item.id;
+    }) || { id: null, name: 'Select an Option' }; // TODO: Add this default selection to options? Merge it into items as a real item?
+    this.searchedGroups = filterGroupsFromSearchTerm(this.state.groups,this.state.searchTerm);
+    return (
+      <div className="dropdown">
+        <DropdownSelectedItem
+          id={selectedItem.id}
+          name={selectedItem.name}
+          toggleDropbox={this.toggleDropbox} />
+          {this.dropdownBoxEl()}
       </div>
     );
   }
 });
+
+// Change so it doesn't render DropdownBox if it's not shown
 
 function filterGroupsFromSearchTerm(groups,term){
   var regex = new RegExp(term,'i');
@@ -97,20 +101,26 @@ var DropdownSelectedItem = React.createClass({
 
 var DropdownBox = React.createClass({
   // After render, focus if open
+  bodyClick: null,
   componentDidMount: function(){
+    this.bodyClick = _.bind(this.handleBodyClick,this)
     if(this.props.open){
       $("body").on("keydown",this.handleBodyKeydown);
-      $(document).on("click",this.handleBodyClick);
+      $(document).on("click",this.bodyClick);
     }
   },
-  componentWillUpdate: function(){
+  componentWillUnmount: function(){
     $("body").off("keydown");
-    $(document).off("click",this.handleBodyClick);
+    $(document).off("click",this.bodyClick);
   },
   componentDidUpdate: function(){
     if(this.props.open){
-      $("body").on("keydown",this.handleBodyKeydown);
-      $(document).on("click",this.handleBodyClick);
+      $(this.refs.dropbox.getDOMNode()).show()
+    } else {
+      var self = this;
+      window.setTimeout(function(){
+        $(self.refs.dropbox.getDOMNode()).hide()
+      },500)
     }
   },
   handleBodyKeydown: function(e){
@@ -257,11 +267,6 @@ var DropdownItem = React.createClass({
 
 var DropdownSearch = React.createClass({
   componentDidMount: function(){
-    if(this.props.open){
-      $(this.refs.input).focus();
-    }
-  },
-  componentDidUpdate: function(){
     if(this.props.open){
       $(this.refs.input.getDOMNode()).val(this.props.searchTerm).focus();
     }

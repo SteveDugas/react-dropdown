@@ -24,16 +24,28 @@ html, body { height: 100%; width: 100%; }
   border: 1px solid #ddd;
   background: #fff;
   border-top: 0;
-  &.open {
-    display: block;
-  }
-  &.close {
-    display: none;
-  }
 }
 .dropdownItem {
   cursor: pointer;
   &.hover {
     background: blue;
   }
+}
+
+.dropdownanim-enter {
+  opacity: 0.01;
+  transition: opacity .5s ease-in;
+}
+
+.dropdownanim-enter.dropdownanim-enter-active {
+  opacity: 1;
+}
+
+.dropdownanim-leave {
+  opacity: 1;
+  transition: opacity .5s ease-in;
+}
+
+.dropdownanim-leave.dropdownanim-leave-active {
+  opacity: 0.01;
 }
