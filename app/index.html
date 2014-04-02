@@ -13,7 +13,7 @@
       
     </div>
     <script>
-      var dropdownItems = [
+      var dropdownGroups = [
         {
           name: "Fart Sandwiches",
           items: [
@@ -44,11 +44,25 @@
           ]
         }
       ]
+      var dropdownItems = [
+        {
+          name: "bananarama",
+          id: 6
+        },
+        {
+          name: "foofighters",
+          id: 1
+        },
+        {
+          name: "little",
+          id: 100
+        }
+      ]
     </script>
     <script type="text/jsx">
       /** @jsx React.DOM */
       React.renderComponent(
-        <Dropdown groups={dropdownItems} showDropdown="false" />,
+        <Dropdown groups={dropdownGroups} items={dropdownItems} showDropdown="false" />,
         document.getElementById("dropdown")
       )
     </script>

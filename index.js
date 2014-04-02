@@ -6,7 +6,7 @@ var connect = require('connect'),
     config = {
         app: 'app',
         port: 9000,
-        lr: 35729
+        lr: 35730
     };
 
 var middleware = [

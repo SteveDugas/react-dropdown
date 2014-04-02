@@ -22,8 +22,16 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     return _.extend(defaultDropdownState,{groups: this.props.groups});
   },
   handleSelectChange: function(newId){
-    this.updateState({
+    this.setState({
       selectedId: newId,
+      open: false,
+      searchTerm: '',
+      hoverId: null
+    });
+  },
+  handleSelectedItemChange: function(e,data){
+    this.setState({
+      selectedId: data.selectedId,
       open: false,
       searchTerm: '',
       hoverId: null
@@ -32,6 +40,17 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
   updateState: function(update){
     this.setState(_.extend(this.state,update));
   },
+  updateHoverId: function(hoverId){
+    this.setState({
+      hoverId: hoverId
+    })
+  },
+  updateSearchTerm: function(term){
+    this.setState({
+      searchTerm: term,
+      hoverId: null
+    })
+  },
   toggleDropbox: function(){
     var open;
     if(this.state.open){
@@ -39,17 +58,20 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     }else{
       open = { open: true };
     }
-    this.updateState(open);
+    this.setState(open);
   },
-  dropdownBoxEl: function(){
+  dropdownBoxEl: function(groupsWithSearch){
     if(this.state.open === true){
       return DropdownBox( 
           {searchTerm:this.state.searchTerm,
-          items:this.searchedGroups,
-          onSelectedChange:this.handleSelectChange,
+          groups:groupsWithSearch,
+          handleSelectChange:this.handleSelectChange,
+          handleSelectedItemChange:this.handleSelectedItemChange,
           open:this.state.open,
           toggleDropbox:this.toggleDropbox,
           updateState:this.updateState,
+          updateSearchTerm:this.updateSearchTerm,
+          updateHoverId:this.updateHoverId,
           hoverId:this.state.hoverId} )
     }
   },
@@ -61,14 +83,14 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     var selectedItem = _.find(allItems,function(item){
       return selectedItemId == item.id;
     }) || { id: null, name: 'Select an Option' }; // TODO: Add this default selection to options? Merge it into items as a real item?
-    this.searchedGroups = filterGroupsFromSearchTerm(this.state.groups,this.state.searchTerm);
+    var searchedGroups = filterGroupsFromSearchTerm(this.state.groups,this.state.searchTerm);
     return (
       React.DOM.div( {className:"dropdown"}, 
         DropdownSelectedItem(
           {id:selectedItem.id,
           name:selectedItem.name,
           toggleDropbox:this.toggleDropbox} ),
-          this.dropdownBoxEl()
+          this.dropdownBoxEl(searchedGroups)
       )
     );
   }
@@ -133,7 +155,7 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
     this.props.toggleDropbox();
   },
   moveHoverItem: function(direction){
-    var itemsLength = _.reduce(_.map(this.props.items,function(group){
+    var itemsLength = _.reduce(_.map(this.props.groups,function(group){
       return group.items.length;
     }),function(a,b){ return a+b; });
     var newHoverId = null;
@@ -162,21 +184,21 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
   },
   selectFromHover: function(){
     var self = this;
-    var items = _.flatten(_.map(this.props.items,function(group){
+    var items = _.flatten(_.map(this.props.groups,function(group){
       return group.items;
     }));
     var selected = _.find(items,function(item,index){
       return index == self.props.hoverId;
     });
     if(selected){
-      this.props.onSelectedChange(selected.id);
+      this.props.handleSelectChange(selected.id);
     }
   },
   render: function(){
     var self = this;
     var key = -1;
     // tODO: change this.props.items to this.props.groups
-    this.dropdownGroups = _.map(this.props.items,function(group){
+    this.dropdownGroups = _.map(this.props.groups,function(group){
       var subItems = group.items;
       var startingKey = key;
       key = key+group.items.length;
@@ -186,7 +208,8 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
         name:group.name,
         hoverId:self.props.hoverId,
         updateState:self.props.updateState,
-        onSelectedChange:self.props.onSelectedChange})
+        handleSelectedItemChange:self.props.handleSelectedItemChange,
+        handleSelectChange:self.props.handleSelectChange})
     });
     var className = "dropdownBox ";
     className += ( this.props.open ? "open" : "close" );
@@ -206,6 +229,7 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
 });
 
 var DropdownGroup = React.createClass({displayName: 'DropdownGroup',
+  // TODO: Remove?
   getItems: function(){
     return this.items;
   },
@@ -220,7 +244,8 @@ var DropdownGroup = React.createClass({displayName: 'DropdownGroup',
         name:item.name,
         hoverId:self.props.hoverId,
         updateState:self.props.updateState,
-        onSelectedChange:self.props.onSelectedChange})
+        handleSelectedItemChange:self.props.handleSelectedItemChange,
+        handleSelectChange:self.props.handleSelectChange})
     });
     return(
       React.DOM.div( {className:"dropdownGroup"}, 
@@ -233,7 +258,7 @@ var DropdownGroup = React.createClass({displayName: 'DropdownGroup',
 
 var DropdownItem = React.createClass({displayName: 'DropdownItem',
   handleClick: function(e){
-    this.props.onSelectedChange(this.props.id);
+    this.props.handleSelectChange(this.props.id);
     e.stopPropagation();
   },
   handleMouseEnter: function(e){
