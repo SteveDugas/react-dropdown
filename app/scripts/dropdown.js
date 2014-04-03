@@ -21,6 +21,55 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
   getInitialState: function() {
     return _.extend(defaultDropdownState,{groups: this.props.groups});
   },
+  handleSearchKeyUp: function(){
+    
+  },
+  handleSearchKeyDown: function(e){
+    if(e.which == 38){ // up
+      this.nextHoverIdUp();
+    } else if(e.which == 40){ //down
+      this.nextHoverIdDown();
+    } else if(e.which == 13){ // enter
+      this.selectFromEnterKey();
+    }
+  },
+
+  searchedGroups: function(){
+    return filterGroupsFromSearchTerm(this.state.groups,this.state.searchTerm);
+  },
+  /* Up/Down arrow key movements when focused on Searchbox */
+  searchedItemsLength: function(){
+    return _.reduce(_.map(this.searchedGroups(),function(group){
+      return group.items.length;
+    }),function(a,b){ return a+b; });
+  },
+  nextHoverIdUp: function(){
+    var itemsLength = this.searchedItemsLength();
+    var hoverId = this.state.hoverId;
+    var newHoverId = (hoverId-1 < 0 ? itemsLength-1 : hoverId-1);
+    this.setState({ hoverId: newHoverId });
+  },
+  nextHoverIdDown: function(){
+    var itemsLength = this.searchedItemsLength();
+    var hoverId = (this.state.hoverId == null ? -1 : this.state.hoverId);
+    var newHoverId = (hoverId+1 > itemsLength-1 ? 0 : hoverId + 1);
+    this.setState({ hoverId: newHoverId });
+  },
+
+  /* Enter key when focused on Searchbox */
+  selectFromEnterKey: function(){
+    var self = this;
+    var items = _.flatten(_.map(this.searchedGroups(),function(group){
+      return group.items;
+    }));
+    var selected = _.find(items,function(item,index){
+      return index == self.state.hoverId;
+    });
+    if(selected){
+      this.handleSelectChange(selected.id);
+    }
+  },
+
   handleSelectChange: function(newId){
     this.setState({
       selectedId: newId,
@@ -72,7 +121,8 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
           updateState:this.updateState,
           updateSearchTerm:this.updateSearchTerm,
           updateHoverId:this.updateHoverId,
-          hoverId:this.state.hoverId} )
+          hoverId:this.state.hoverId,
+          handleSearchKeyDown:this.handleSearchKeyDown} )
     }
   },
   render: function(){
@@ -154,50 +204,9 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
   handleBodyClick: function(e){
     this.props.toggleDropbox();
   },
-  moveHoverItem: function(direction){
-    var itemsLength = _.reduce(_.map(this.props.groups,function(group){
-      return group.items.length;
-    }),function(a,b){ return a+b; });
-    var newHoverId = null;
-    if(direction == "down"){
-      if(this.props.hoverId !== null){
-        if(this.props.hoverId+1 > itemsLength-1){
-          newHoverId = 0;
-        } else {
-          newHoverId = this.props.hoverId+1;
-        }
-      } else {
-        newHoverId = 0;
-      }
-    } else if(direction == "up") {
-      if(this.props.hoverId-1 < 0){
-        newHoverId = itemsLength-1;
-      } else {
-        newHoverId = this.props.hoverId-1;
-      }
-    }
-    if(newHoverId !== null){
-      this.props.updateState({
-        hoverId: newHoverId
-      });
-    }
-  },
-  selectFromHover: function(){
-    var self = this;
-    var items = _.flatten(_.map(this.props.groups,function(group){
-      return group.items;
-    }));
-    var selected = _.find(items,function(item,index){
-      return index == self.props.hoverId;
-    });
-    if(selected){
-      this.props.handleSelectChange(selected.id);
-    }
-  },
   render: function(){
     var self = this;
     var key = -1;
-    // tODO: change this.props.items to this.props.groups
     this.dropdownGroups = _.map(this.props.groups,function(group){
       var subItems = group.items;
       var startingKey = key;
@@ -218,8 +227,7 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
         DropdownSearch(
           {open:this.props.open,
           updateState:this.props.updateState,
-          selectFromHover:this.selectFromHover,
-          moveHoverItem:this.moveHoverItem,
+          handleSearchKeyDown:this.props.handleSearchKeyDown,
           searchTerm:this.props.searchTerm}
         ),
         this.dropdownGroups
@@ -229,10 +237,6 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
 });
 
 var DropdownGroup = React.createClass({displayName: 'DropdownGroup',
-  // TODO: Remove?
-  getItems: function(){
-    return this.items;
-  },
   render: function(){
     var key = this.props.key;
     var self = this;
@@ -306,19 +310,10 @@ var DropdownSearch = React.createClass({displayName: 'DropdownSearch',
       });
     }
   },
-  handleKeyDown: function(e){
-    if(e.which == 38){ // up
-      this.props.moveHoverItem("up");
-    } else if(e.which == 40){ //down
-      this.props.moveHoverItem("down");
-    } else if(e.which == 13){ // enter
-      this.props.selectFromHover();
-    }
-  },
   render: function(){
     return (
       React.DOM.div( {className:"dropdownSearch"}, 
-        React.DOM.input( {ref:"input", onKeyUp:this.handleKeyUp, onKeyDown:this.handleKeyDown, updateFromKey:this.props.selectFromHover} ) 
+        React.DOM.input( {ref:"input", onKeyUp:this.handleKeyUp, onKeyDown:this.props.handleSearchKeyDown} ) 
       )
     );
   }
