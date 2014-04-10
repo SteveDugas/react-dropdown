@@ -30,7 +30,7 @@ var Dropdown = React.createClass({
     }
   },
   getInitialState: function() {
-    return _.extend(defaultDropdownState,{groups: this.props.groups});
+    return defaultDropdownState;
   },
 
 /*
@@ -151,10 +151,10 @@ var Dropdown = React.createClass({
     }
   },
   allItems: function(){
-    var groupItems = _.flatten(_.map(this.state.groups,function(group){
+    var groupItems = _.flatten(_.map(this.props.groups,function(group){
       return group.items;
     }));
-    return _.extend(groupItems,this.props.items) // merge in state.items
+    return this.props.items.concat(groupItems)
   },
   render: function(){
     var selectedItemId = this.state.selectedId;
