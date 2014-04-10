@@ -3,11 +3,11 @@ var DropdownItem = React.createClass({
     this.props.handleSelectedItemChange(e,{selectedId: this.props.id});
   },
   handleMouseEnter: function(e){
-    this.props.handleItemHoverChange(this.props.key)
+    this.props.handleItemHoverChange(this.props.key);
   },
   handleMouseLeave: function(e){
     if(this.props.hoverId == this.props.key){
-      this.props.handleItemHoverChange(null)
+      this.props.handleItemHoverChange(null);
     }
   },
   render: function(){
@@ -18,8 +18,9 @@ var DropdownItem = React.createClass({
         id={this.props.id}
         onClick={this.handleClick}
         onMouseEnter={this.handleMouseEnter}
-        onMouseLeave={this.handleMouseLeave}> 
-          {this.props.name}
+        onMouseLeave={this.handleMouseLeave}
+      > 
+        {this.props.name}
       </div>
     );
   }

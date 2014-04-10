@@ -38,22 +38,20 @@ html, body {
   background: blue;
 }
 
-.dropdownanim-enter {
+.dropdownBox-enter {
   opacity: 0.01;
-  -webkit-transition: opacity .5s ease-in;
-  transition: opacity .5s ease-in;
 }
 
-.dropdownanim-enter.dropdownanim-enter-active {
+.dropdownBox-enter.dropdownBox-enter-active {
   opacity: 1;
+  transition: opacity 0.3s;
 }
 
-.dropdownanim-leave {
+.dropdownBox-leave {
   opacity: 1;
-  -webkit-transition: opacity .5s ease-in;
-  transition: opacity .5s ease-in;
+  transition: opacity 0.3s;
 }
 
-.dropdownanim-leave.dropdownanim-leave-active {
+.dropdownBox-leave.dropdownBox-leave-active {
   opacity: 0.01;
 }

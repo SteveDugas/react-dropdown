@@ -9,25 +9,49 @@ var defaultDropdownState = {
   items: [],
   groups: []
 };
+var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Dropdown = React.createClass({displayName: 'Dropdown',
+  bodyClick: null,
   componentDidMount: function(){
     // Is there a way to avoid doing this?
     $(document).on("click",".dropdown",function(e){
       e.preventDefault();
       e.stopPropagation();
     });
+    this.bodyClick = _.bind(this.handleBodyClick,this)
+  },
+  componentDidUpdate: function(){
+    if(this.state.open){
+      $("body").on("keydown",this.handleBodyKeydown);
+      $(document).on("click",this.bodyClick);
+    } else {
+      $("body").off("keydown");
+      $(document).off("click",this.bodyClick);
+    }
   },
   getInitialState: function() {
     return _.extend(defaultDropdownState,{groups: this.props.groups});
   },
 
+/*
+ * DropdownSelectedItems Events
+ */
   handleSelectedItemClick: function(e){
     e.preventDefault();
     this.toggleDropbox();
   },
+  handleBodyKeydown: function(e){
+    if(e.which == 27){
+      this.toggleDropbox();
+    }
+  },
+  handleBodyClick: function(e){
+    this.toggleDropbox();
+  },
+
 /***
- * Search Events
+ * DropdownSearch Events
  */
   handleSearchKeyUp: function(e,searchTerm){
     if(this.state.searchTerm !== searchTerm){
@@ -59,13 +83,12 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     this.setState({ hoverId: newHoverId });
   },
   selectFromEnterKey: function(){
-    var self = this;
     var items = _.flatten(_.map(this.searchedGroups(),function(group){
       return group.items;
     }));
     var selected = _.find(items,function(item,index){
-      return index == self.state.hoverId;
-    });
+      return index == this.state.hoverId;
+    },this);
     if(selected){
       this.handleSelectedItemChange($.Event("click"),{ selectedId: selected.id});
     }
@@ -80,6 +103,9 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     }),function(a,b){ return a+b; });
   },
 
+/*
+ * DropdownItem Events
+ */
   handleSelectedItemChange: function(e,data){
     e.stopPropagation();
     this.setState({
@@ -94,6 +120,8 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
       hoverId: hoverId
     });
   },
+
+// Toggle the dropbox open/close
   toggleDropbox: function(){
     var newState;
     if(this.state.open){
@@ -103,10 +131,12 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     }
     this.setState(newState);
   },
+
   dropdownBoxEl: function(groupsWithSearch){
     if(this.state.open === true){
-      return DropdownBox( 
-          {searchTerm:this.state.searchTerm,
+      return DropdownBox(
+          {key:1,
+          searchTerm:this.state.searchTerm,
           groups:groupsWithSearch,
           handleSelectedItemChange:this.handleSelectedItemChange,
           open:this.state.open,
@@ -128,11 +158,14 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     var searchedGroups = this.searchedGroups();
     return (
       React.DOM.div( {className:"dropdown"}, 
+      ReactCSSTransitionGroup( {className:"dropdown", transitionName:"dropdownBox", component:React.DOM.div}, 
         DropdownSelectedItem(
-          {name:selectedItem.name,
+          {key:2,
+          name:selectedItem.name,
           handleSelectedItemClick:this.handleSelectedItemClick,
           toggleDropbox:this.toggleDropbox} ),
           this.dropdownBoxEl(searchedGroups)
+      )
       )
     );
   }
@@ -150,38 +183,7 @@ function filterGroupsFromSearchTerm(groups,term){
 }
 /** @jsx React.DOM */
 var DropdownBox = React.createClass({displayName: 'DropdownBox',
-  bodyClick: null,
-  componentDidMount: function(){
-    this.bodyClick = _.bind(this.handleBodyClick,this)
-    if(this.props.open){
-      $("body").on("keydown",this.handleBodyKeydown);
-      $(document).on("click",this.bodyClick);
-    }
-  },
-  componentWillUnmount: function(){
-    $("body").off("keydown");
-    $(document).off("click",this.bodyClick);
-  },
-  componentDidUpdate: function(){
-    if(this.props.open){
-      $(this.refs.dropbox.getDOMNode()).show()
-    } else {
-      var self = this;
-      window.setTimeout(function(){
-        $(self.refs.dropbox.getDOMNode()).hide()
-      },500)
-    }
-  },
-  handleBodyKeydown: function(e){
-    if(e.which == 27){
-      this.props.toggleDropbox();
-    }
-  },
-  handleBodyClick: function(e){
-    this.props.toggleDropbox();
-  },
   render: function(){
-    var self = this;
     var key = -1;
     this.dropdownGroups = _.map(this.props.groups,function(group){
       var subItems = group.items;
@@ -191,18 +193,15 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
         {key:startingKey,
         items:subItems,
         name:group.name,
-        hoverId:self.props.hoverId,
-        handleItemHoverChange:self.props.handleItemHoverChange,
-        handleSelectedItemChange:self.props.handleSelectedItemChange}
+        hoverId:this.props.hoverId,
+        handleItemHoverChange:this.props.handleItemHoverChange,
+        handleSelectedItemChange:this.props.handleSelectedItemChange}
         )
-    });
-    var className = "dropdownBox";
-    className += ( this.props.open ? " open" : " close" );
+    },this);
     return (
-      React.DOM.div( {className:className, ref:"dropbox"}, 
+      React.DOM.div( {className:"dropdownBox", ref:"dropbox"}, 
         DropdownSearch(
-          {open:this.props.open,
-          searchTerm:this.props.searchTerm,
+          {searchTerm:this.props.searchTerm,
           handleSearchKeyDown:this.props.handleSearchKeyDown,
           handleSearchKeyUp:this.props.handleSearchKeyUp}
         ),
@@ -215,18 +214,17 @@ var DropdownBox = React.createClass({displayName: 'DropdownBox',
 var DropdownGroup = React.createClass({displayName: 'DropdownGroup',
   render: function(){
     var key = this.props.key;
-    var self = this;
     this.items = _.map(this.props.items,function(item){
       key++;
       return DropdownItem(
         {id:item.id,
         key:key,
         name:item.name,
-        hoverId:self.props.hoverId,
-        handleItemHoverChange:self.props.handleItemHoverChange,
-        handleSelectedItemChange:self.props.handleSelectedItemChange}
+        hoverId:this.props.hoverId,
+        handleItemHoverChange:this.props.handleItemHoverChange,
+        handleSelectedItemChange:this.props.handleSelectedItemChange}
         )
-    });
+    },this);
     return(
       React.DOM.div( {className:"dropdownGroup"}, 
         React.DOM.span(null, this.props.name),
@@ -241,11 +239,11 @@ var DropdownItem = React.createClass({displayName: 'DropdownItem',
     this.props.handleSelectedItemChange(e,{selectedId: this.props.id});
   },
   handleMouseEnter: function(e){
-    this.props.handleItemHoverChange(this.props.key)
+    this.props.handleItemHoverChange(this.props.key);
   },
   handleMouseLeave: function(e){
     if(this.props.hoverId == this.props.key){
-      this.props.handleItemHoverChange(null)
+      this.props.handleItemHoverChange(null);
     }
   },
   render: function(){
@@ -256,8 +254,9 @@ var DropdownItem = React.createClass({displayName: 'DropdownItem',
         id:this.props.id,
         onClick:this.handleClick,
         onMouseEnter:this.handleMouseEnter,
-        onMouseLeave:this.handleMouseLeave},  
-          this.props.name
+        onMouseLeave:this.handleMouseLeave}
+      ,  
+        this.props.name
       )
     );
   }
@@ -265,9 +264,7 @@ var DropdownItem = React.createClass({displayName: 'DropdownItem',
 /** @jsx React.DOM */
 var DropdownSearch = React.createClass({displayName: 'DropdownSearch',
   componentDidMount: function(){
-    if(this.props.open){
-      $(this.refs.input.getDOMNode()).val(this.props.searchTerm).focus();
-    }
+    $(this.refs.input.getDOMNode()).val(this.props.searchTerm).focus();
   },
   handleKeyUp: function(e){
     var searchTerm = $.trim($(this.refs.input.getDOMNode()).val());

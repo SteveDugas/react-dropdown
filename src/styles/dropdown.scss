@@ -32,20 +32,20 @@ html, body { height: 100%; width: 100%; }
   }
 }
 
-.dropdownanim-enter {
-  opacity: 0.01;
-  transition: opacity .5s ease-in;
-}
-
-.dropdownanim-enter.dropdownanim-enter-active {
-  opacity: 1;
-}
-
-.dropdownanim-leave {
-  opacity: 1;
-  transition: opacity .5s ease-in;
-}
-
-.dropdownanim-leave.dropdownanim-leave-active {
+.dropdownBox-enter {
   opacity: 0.01;
 }
+
+.dropdownBox-enter.dropdownBox-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.dropdownBox-leave {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.dropdownBox-leave.dropdownBox-leave-active {
+  opacity: 0.01;
+}
+

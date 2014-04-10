@@ -8,25 +8,49 @@ var defaultDropdownState = {
   items: [],
   groups: []
 };
+var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Dropdown = React.createClass({
+  bodyClick: null,
   componentDidMount: function(){
     // Is there a way to avoid doing this?
     $(document).on("click",".dropdown",function(e){
       e.preventDefault();
       e.stopPropagation();
     });
+    this.bodyClick = _.bind(this.handleBodyClick,this)
+  },
+  componentDidUpdate: function(){
+    if(this.state.open){
+      $("body").on("keydown",this.handleBodyKeydown);
+      $(document).on("click",this.bodyClick);
+    } else {
+      $("body").off("keydown");
+      $(document).off("click",this.bodyClick);
+    }
   },
   getInitialState: function() {
     return _.extend(defaultDropdownState,{groups: this.props.groups});
   },
 
+/*
+ * DropdownSelectedItems Events
+ */
   handleSelectedItemClick: function(e){
     e.preventDefault();
     this.toggleDropbox();
   },
+  handleBodyKeydown: function(e){
+    if(e.which == 27){
+      this.toggleDropbox();
+    }
+  },
+  handleBodyClick: function(e){
+    this.toggleDropbox();
+  },
+
 /***
- * Search Events
+ * DropdownSearch Events
  */
   handleSearchKeyUp: function(e,searchTerm){
     if(this.state.searchTerm !== searchTerm){
@@ -58,13 +82,12 @@ var Dropdown = React.createClass({
     this.setState({ hoverId: newHoverId });
   },
   selectFromEnterKey: function(){
-    var self = this;
     var items = _.flatten(_.map(this.searchedGroups(),function(group){
       return group.items;
     }));
     var selected = _.find(items,function(item,index){
-      return index == self.state.hoverId;
-    });
+      return index == this.state.hoverId;
+    },this);
     if(selected){
       this.handleSelectedItemChange($.Event("click"),{ selectedId: selected.id});
     }
@@ -79,6 +102,9 @@ var Dropdown = React.createClass({
     }),function(a,b){ return a+b; });
   },
 
+/*
+ * DropdownItem Events
+ */
   handleSelectedItemChange: function(e,data){
     e.stopPropagation();
     this.setState({
@@ -93,6 +119,8 @@ var Dropdown = React.createClass({
       hoverId: hoverId
     });
   },
+
+// Toggle the dropbox open/close
   toggleDropbox: function(){
     var newState;
     if(this.state.open){
@@ -102,9 +130,11 @@ var Dropdown = React.createClass({
     }
     this.setState(newState);
   },
+
   dropdownBoxEl: function(groupsWithSearch){
     if(this.state.open === true){
-      return <DropdownBox 
+      return <DropdownBox
+          key={1}
           searchTerm={this.state.searchTerm}
           groups={groupsWithSearch}
           handleSelectedItemChange={this.handleSelectedItemChange}
@@ -127,11 +157,14 @@ var Dropdown = React.createClass({
     var searchedGroups = this.searchedGroups();
     return (
       <div className="dropdown">
+      <ReactCSSTransitionGroup className="dropdown" transitionName="dropdownBox" component={React.DOM.div}>
         <DropdownSelectedItem
+          key={2}
           name={selectedItem.name}
           handleSelectedItemClick={this.handleSelectedItemClick}
           toggleDropbox={this.toggleDropbox} />
           {this.dropdownBoxEl(searchedGroups)}
+      </ReactCSSTransitionGroup>
       </div>
     );
   }
