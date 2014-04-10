@@ -6,50 +6,68 @@ html, body { height: 100%; width: 100%; }
 }
 .dropdown {
   position: relative;
-}
-.dropdownSelectedItem {
-  display: block;
-  width: 200px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 20px;
-  background: #fff;
-}
-.dropdownBox {
-  position: absolute;
-  left: 0;
-  top: 28px;
-  width: 200px;
-  height: 100px;
-  padding: 5px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-top: 0;
-}
-.dropdownItem {
-  cursor: pointer;
-  &.hover {
-    background: blue;
+  .dropdownSelectedItem {
+    display: block;
+    width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 20px;
+    background: #fff;
+    input {
+      cursor: default;
+      border: 0;
+      width: 100%;
+      padding: 0;
+    }
+  }
+  .dropdownBox {
+    position: absolute;
+    left: 0;
+    top: 28px;
+    width: 200px;
+    height: 100px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-top: 0;
+    overflow: auto;
+  }
+  .dropdownSearch {
+    input {
+      padding: 5px;
+      width: 182px;
+      border: 1px solid #ddd;
+    }
+  }
+  .dropdownGroup {
+    > span {
+      font-size: 14px;
+      display: block;
+    }
+  }
+  .dropdownItem {
+    cursor: pointer;
+    padding-left: 25px;
+    &.hover {
+      background: blue;
+    }
   }
 }
 
 .dropdownBox-enter {
   opacity: 0.01;
-}
-
-.dropdownBox-enter.dropdownBox-enter-active {
-  opacity: 1;
-  transition: opacity 0.3s;
+  &.dropdownBox-enter-active {
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
 }
 .dropdownBox-leave {
   opacity: 1;
   transition: opacity 0.3s;
+  &.dropdownBox-leave-active {
+    opacity: 0.01;
+  }
 }
-
-.dropdownBox-leave.dropdownBox-leave-active {
-  opacity: 0.01;
-}
-

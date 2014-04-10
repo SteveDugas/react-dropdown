@@ -1,5 +1,6 @@
 /** @jsx React.DOM */
 // TODO: Change the SelectedItem to be an Input with on Focus toggle the dropdown. Maybe on blur toggle also?
+// TODO: Scroll page down as selection moves
 var defaultDropdownState = {
   hoverId: null,
   searchTerm: '',
@@ -315,8 +316,8 @@ var DropdownSearch = React.createClass({displayName: 'DropdownSearch',
 var DropdownSelectedItem = React.createClass({displayName: 'DropdownSelectedItem',
   render: function(){
     return (
-      React.DOM.div( {className:"dropdownSelectedItem", onClick:this.props.handleSelectedItemClick}, 
-        this.props.name
+      React.DOM.div( {className:"dropdownSelectedItem"}, 
+        React.DOM.input( {value:this.props.name, readonly:true, onClick:this.props.handleSelectedItemClick} )
       )
     );
   }

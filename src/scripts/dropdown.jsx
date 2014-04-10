@@ -1,4 +1,5 @@
 // TODO: Change the SelectedItem to be an Input with on Focus toggle the dropdown. Maybe on blur toggle also?
+// TODO: Scroll page down as selection moves
 var defaultDropdownState = {
   hoverId: null,
   searchTerm: '',
