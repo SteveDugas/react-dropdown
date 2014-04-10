@@ -9,9 +9,9 @@
     <link href="styles/dropdown.min.css" type="text/css" rel="stylesheet">
   </head>
   <body>
-    <div id="dropdown">
-      
-    </div>
+    <div id="dropdown" class="dropdown-wrap"></div>
+    <div id="dropdown-just-items" class="dropdown-wrap"></div>
+    <div id="dropdown-just-groups" class="dropdown-wrap"></div>
     <script>
       var dropdownItems = [
         {
@@ -68,6 +68,14 @@
       React.renderComponent(
         <Dropdown groups={dropdownGroups} items={dropdownItems} showDropdown="false" />,
         document.getElementById("dropdown")
+      )
+      React.renderComponent(
+        <Dropdown items={dropdownItems} showDropdown="false" />,
+        document.getElementById("dropdown-just-items")
+      )
+      React.renderComponent(
+        <Dropdown groups={dropdownGroups} showDropdown="false" />,
+        document.getElementById("dropdown-just-groups")
       )
     </script>
   </body>

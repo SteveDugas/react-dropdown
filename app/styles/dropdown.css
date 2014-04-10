@@ -3,7 +3,12 @@ html, body {
   width: 100%;
 }
 
-#dropdown {
+.dropdown-wrap {
+  float: left;
+  margin-right: 20px;
+}
+
+.dropdown {
   position: relative;
 }
 

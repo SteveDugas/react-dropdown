@@ -1,13 +1,15 @@
 // TODO: Change the SelectedItem to be an Input with on Focus toggle the dropdown. Maybe on blur toggle also?
-// TODO: With/without optgroups
+// TODO: Add a change event trigger
 var defaultDropdownState = {
   hoverId: null,
   searchTerm: '',
   open: false,
-  selectedId: null,
+  selectedId: null
+};
+var defaultDropdownProps = {
   items: [],
   groups: []
-};
+}
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Dropdown = React.createClass({
@@ -31,6 +33,9 @@ var Dropdown = React.createClass({
   },
   getInitialState: function() {
     return defaultDropdownState;
+  },
+  getDefaultProps: function(){
+    return defaultDropdownProps;
   },
 
 /*
@@ -167,7 +172,6 @@ var Dropdown = React.createClass({
       return selectedItemId == item.id;
     }) || { id: null, name: 'Select an Option' }; // TODO: Add this default selection to options? Merge it into items as a real item?
     return (
-      <div className="dropdown">
       <ReactCSSTransitionGroup className="dropdown" transitionName="dropdownBox" component={React.DOM.div}>
         <DropdownSelectedItem
           key={2}
@@ -176,7 +180,6 @@ var Dropdown = React.createClass({
           toggleDropbox={this.toggleDropbox} />
           {this.dropdownBoxEl()}
       </ReactCSSTransitionGroup>
-      </div>
     );
   }
 });

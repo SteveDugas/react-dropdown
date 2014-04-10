@@ -1,6 +1,5 @@
 var DropdownItem = React.createClass({
   handleClick: function(e){
-    console.log("with id",this.props.id)
     this.props.handleSelectedItemChange(e,{selectedId: this.props.id});
   },
   handleMouseEnter: function(e){
