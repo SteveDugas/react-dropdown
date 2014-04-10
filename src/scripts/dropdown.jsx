@@ -18,7 +18,7 @@ var Dropdown = React.createClass({
       e.preventDefault();
       e.stopPropagation();
     });
-    this.bodyClick = _.bind(this.handleBodyClick,this)
+    this.bodyClick = _.bind(this.handleBodyClick,this);
   },
   componentDidUpdate: function(){
     if(this.state.open){
@@ -82,9 +82,7 @@ var Dropdown = React.createClass({
     this.setState({ hoverId: newHoverId });
   },
   selectFromEnterKey: function(){
-    var items = _.flatten(_.map(this.searchedGroups(),function(group){
-      return group.items;
-    }));
+    var items = this.allItems()
     var selected = _.find(items,function(item,index){
       return index == this.state.hoverId;
     },this);
@@ -94,12 +92,15 @@ var Dropdown = React.createClass({
   },
 
   searchedGroups: function(){
-    return filterGroupsFromSearchTerm(this.state.groups,this.state.searchTerm);
+    return filterGroupsFromSearchTerm(this.props.groups,this.state.searchTerm);
+  },
+  searchedItems: function(){
+    return filterItemsFromSearchTerm(this.props.items,this.state.searchTerm);
   },
   searchedItemsLength: function(){
     return _.reduce(_.map(this.searchedGroups(),function(group){
       return group.items.length;
-    }),function(a,b){ return a+b; });
+    }),function(a,b){ return a+b; }) + this.searchedItems().length;
   },
 
 /*
@@ -131,12 +132,15 @@ var Dropdown = React.createClass({
     this.setState(newState);
   },
 
-  dropdownBoxEl: function(groupsWithSearch){
+  dropdownBoxEl: function(){
+    var searchedGroups = this.searchedGroups();
+    var searchedItems = this.searchedItems();
     if(this.state.open === true){
       return <DropdownBox
           key={1}
           searchTerm={this.state.searchTerm}
-          groups={groupsWithSearch}
+          groups={searchedGroups}
+          items={searchedItems}
           handleSelectedItemChange={this.handleSelectedItemChange}
           open={this.state.open}
           toggleDropbox={this.toggleDropbox}
@@ -146,15 +150,17 @@ var Dropdown = React.createClass({
           handleSearchKeyDown={this.handleSearchKeyDown} />
     }
   },
+  allItems: function(){
+    var groupItems = _.flatten(_.map(this.state.groups,function(group){
+      return group.items;
+    }));
+    return _.extend(groupItems,this.props.items) // merge in state.items
+  },
   render: function(){
     var selectedItemId = this.state.selectedId;
-    var allItems = _.flatten(_.map(this.state.groups,function(group){
-      return group.items;
-    })); // merge in state.items
-    var selectedItem = _.find(allItems,function(item){
+    var selectedItem = _.find(this.allItems(),function(item){
       return selectedItemId == item.id;
     }) || { id: null, name: 'Select an Option' }; // TODO: Add this default selection to options? Merge it into items as a real item?
-    var searchedGroups = this.searchedGroups();
     return (
       <div className="dropdown">
       <ReactCSSTransitionGroup className="dropdown" transitionName="dropdownBox" component={React.DOM.div}>
@@ -163,7 +169,7 @@ var Dropdown = React.createClass({
           name={selectedItem.name}
           handleSelectedItemClick={this.handleSelectedItemClick}
           toggleDropbox={this.toggleDropbox} />
-          {this.dropdownBoxEl(searchedGroups)}
+          {this.dropdownBoxEl()}
       </ReactCSSTransitionGroup>
       </div>
     );
@@ -179,4 +185,10 @@ function filterGroupsFromSearchTerm(groups,term){
   }),function(group){
     return group.items.length > 0;
   });
-}
+};
+function filterItemsFromSearchTerm(items,term){
+  var regex = new RegExp(term,'i');
+  return _.filter(items,function(item){
+    return regex.test(item.name)
+  })
+};
