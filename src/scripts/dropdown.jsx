@@ -1,5 +1,4 @@
 // TODO: Change the SelectedItem to be an Input with on Focus toggle the dropdown. Maybe on blur toggle also?
-// TODO: Add a change event trigger
 var defaultDropdownState = {
   hoverId: null,
   searchTerm: '',
@@ -124,6 +123,7 @@ var Dropdown = React.createClass({
       searchTerm: '',
       hoverId: null
     });
+    $(this).trigger("change",{ selected: data.selectedId });
   },
   handleItemHoverChange: function(hoverId){
     this.setState({

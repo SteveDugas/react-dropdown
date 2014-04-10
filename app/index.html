@@ -65,7 +65,7 @@
     </script>
     <script type="text/jsx">
       /** @jsx React.DOM */
-      React.renderComponent(
+      var test = React.renderComponent(
         <Dropdown groups={dropdownGroups} items={dropdownItems} showDropdown="false" />,
         document.getElementById("dropdown")
       )
@@ -77,6 +77,9 @@
         <Dropdown groups={dropdownGroups} showDropdown="false" />,
         document.getElementById("dropdown-just-groups")
       )
+      $(test).on("change",function(e,d){
+        //console.log(arguments);
+      })
     </script>
   </body>
 </html>
