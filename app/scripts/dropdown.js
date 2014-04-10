@@ -71,19 +71,19 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
     }
   },
   nextHoverIdUp: function(){
-    var itemsLength = this.searchedItemsLength();
+    var itemsLength = this.searchedAllLength();
     var hoverId = this.state.hoverId;
     var newHoverId = (hoverId-1 < 0 ? itemsLength-1 : hoverId-1);
     this.setState({ hoverId: newHoverId });
   },
   nextHoverIdDown: function(){
-    var itemsLength = this.searchedItemsLength();
+    var itemsLength = this.searchedAllLength();
     var hoverId = (this.state.hoverId == null ? -1 : this.state.hoverId);
     var newHoverId = (hoverId+1 > itemsLength-1 ? 0 : hoverId + 1);
     this.setState({ hoverId: newHoverId });
   },
   selectFromEnterKey: function(){
-    var items = this.allItems()
+    var items = this.searchedAll();
     var selected = _.find(items,function(item,index){
       return index == this.state.hoverId;
     },this);
@@ -98,10 +98,15 @@ var Dropdown = React.createClass({displayName: 'Dropdown',
   searchedItems: function(){
     return filterItemsFromSearchTerm(this.props.items,this.state.searchTerm);
   },
-  searchedItemsLength: function(){
-    return _.reduce(_.map(this.searchedGroups(),function(group){
-      return group.items.length;
-    }),function(a,b){ return a+b; }) + this.searchedItems().length;
+  searchedAll: function(){
+    var items = this.searchedItems();
+    var groupedItems = _.flatten(_.map(this.searchedGroups(),function(group){
+      return group.items
+    }))
+    return items.concat(groupedItems);
+  },
+  searchedAllLength: function(){
+    return this.searchedAll().length;
   },
 
 /*
