@@ -30,6 +30,8 @@ gulp.task('watch', function() {
     gulp.watch('src/styles/*.scss', ['styles']);
     // Watch .js files
     gulp.watch('src/scripts/*.js*', ['scripts']);
+
+    gulp.watch('src/vendor/*.js', ['vendor']);
   });
 });
 
@@ -58,6 +60,17 @@ gulp.task('scripts', function() {
     .pipe(livereload(server))
     .pipe(notify({ message: 'Scripts task complete' }));
 });
+
+gulp.task('vendor',function(){
+  return gulp.src("src/vendor/*.js")
+    .pipe(concat('vendor.js'))
+    .pipe(gulp.dest('app/scripts'))
+    .pipe(rename({suffix: '.min'}))
+    .pipe(uglify())
+    .pipe(gulp.dest('app/scripts'))
+    .pipe(livereload(server))
+    .pipe(notify({ message: 'Vendor task complete' }));
+})
 
 gulp.task('clean', function() {
   return gulp.src(['app/styles', 'app/scripts'], {read: false})

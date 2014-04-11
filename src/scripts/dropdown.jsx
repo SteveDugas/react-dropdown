@@ -13,22 +13,20 @@ var defaultDropdownProps = {
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Dropdown = React.createClass({
-  bodyClick: null,
   componentDidMount: function(){
     // Is there a way to avoid doing this?
     $(document).on("click",".dropdown",function(e){
       e.preventDefault();
       e.stopPropagation();
     });
-    this.bodyClick = _.bind(this.handleBodyClick,this);
   },
   componentDidUpdate: function(){
     if(this.state.open){
       $("body").on("keydown",this.handleBodyKeydown);
-      $(document).on("click",this.bodyClick);
+      $(document).on("click",this.handleBodyClick);
     } else {
       $("body").off("keydown");
-      $(document).off("click",this.bodyClick);
+      $(document).off("click",this.handleBodyClick);
     }
   },
   getInitialState: function() {
@@ -51,7 +49,9 @@ var Dropdown = React.createClass({
     }
   },
   handleBodyClick: function(e){
-    this.toggleDropbox();
+    if(this.state.open){
+      this.toggleDropbox();
+    }
   },
 
 /***
@@ -149,6 +149,7 @@ var Dropdown = React.createClass({
     if(this.state.open === true){
       return <DropdownBox
           key={1}
+          ref="box"
           searchTerm={this.state.searchTerm}
           groups={searchedGroups}
           items={searchedItems}
@@ -173,8 +174,9 @@ var Dropdown = React.createClass({
       return selectedItemId == item.id;
     }) || { id: null, name: 'Select an Option' }; // TODO: Add this default selection to options? Merge it into items as a real item?
     return (
-      <ReactCSSTransitionGroup className="dropdown" transitionName="dropdownBox" component={React.DOM.div}>
+      <ReactCSSTransitionGroup className="dropdown" ref="dropdown" transitionName="dropdownBox" component={React.DOM.div}>
         <DropdownSelectedItem
+          ref="select"
           key={2}
           name={selectedItem.name}
           handleSelectedItemClick={this.handleSelectedItemClick}
